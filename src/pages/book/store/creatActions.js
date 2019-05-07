@@ -1,6 +1,6 @@
 // book 创建动作的文件
 import http from '@/utils/http.js';
-import {INPUTVALCHANGE,SETBOOKDATA} from './actionTypes';
+import {INPUTVALCHANGE,SETBOOKDATA,SETPAGENUM} from './actionTypes';
 
 //  创建 inputval 修改的动作
 // @param {String} value 输入的内容
@@ -26,7 +26,6 @@ export const getBookListAction = () =>{
     })
     .then(res =>{
        if (res.code === 0) {
-        
          dispatch({
            type:SETBOOKDATA,
            data:res.data
@@ -40,5 +39,29 @@ export const getBookListAction = () =>{
         // }))
        }
     })
+  }
+}
+
+// 搜索的方法
+
+export const searchBookAction = () => {
+   return (dispatch) => {
+     dispatch({
+       type:SETPAGENUM,
+       value:1
+     })
+     dispatch(getBookListAction());
+   }
+}
+
+//分页跳转
+export const pageBookAction = (page) => {
+  return (dispatch) => {
+    dispatch ({
+      type:SETPAGENUM,
+      value:page,
+     
+    })
+    dispatch(getBookListAction());
   }
 }

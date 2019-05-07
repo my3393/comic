@@ -11,11 +11,11 @@ class Sider extends Component {
       menus:store.getState().common.menus
     };
 
-    store.subscribe = () => {
-      this.setState({
-        menus:store.getState().common.menus
-      });
-    }
+    // store.subscribe = () => {
+    //   this.setState({
+    //     menus:store.getState().common.menus
+    //   });
+    // }
   }
    render() {
      return (

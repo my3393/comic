@@ -1,153 +1,84 @@
-
-import React, {Component} from 'react';
-import { Input,Table, Button} from 'antd';
-import {BookWrap,MainWrap} from './style';
-import http from '@/utils/http.js';
+import React from 'react'
+import {connect} from 'react-redux';
+import BookUI from './ui';
+import {inputChagne,searchBookAction
+  ,getBookListAction
+  ,pageBookAction} from './store/creatActions'
 
 import store from '@/store'
-import {inputChagne,getBookListAction} from './store/creatActions'
 
 
-
-const columns = [{
-  title: 'bookId',
-  dataIndex: 'bookId',
-  key: 'bookId',
-  filters:[{
-    text:'个人',
-    value:'个人'
-  }],
-  onFilter: (value, record) => record.name.indexOf(value) === 0,
-}, {
-  title: '图书名',
-  dataIndex: 'bookName',
-  key: 'bookName',
-  sorter: (a, b) => (a.age - b.age),
-}, {
-  title: '作者',
-  dataIndex: 'author',
-  key: 'auther',
-},
-{
-  title:'图片',
-  dataIndex:'coverurl',
-  key:'coverurl',
-  render(text, record, index) {
-   return <img src={text} alt="" />
-  },
-
-}];
-
-
-
-class Book extends Component {
-  constructor(props){
-    super(props);
-    this.state = {
-      list: store.getState().book.list,
-      inputVal: store.getState().book.inputVal,
-      pageNum: store.getState().book.pageNum,
-      pageSize: store.getState().book.pageSize,
-   
-      pagination :{
-        total:store.getState().book.total,
-        pageSize:store.getState().book.pageSize,
-        onChange:this.onPageChange.bind(this)}
-     
+// 返回一个对象 ，返回的内容就是 UI 组件props 的内容
+const mapStateToProps = (state) => {
+   return {
+     inputVal:state.book.inputVal,
+     list : state.book.list,
+     columns : [{
+      title: 'bookId',
+      dataIndex: 'bookId',
+      key: 'bookId',
+      filters:[{
+        text:'个人',
+        value:'个人'
+      }],
+      onFilter: (value, record) => record.name.indexOf(value) === 0,
+    }, {
+      title: '图书名',
+      dataIndex: 'bookName',
+      key: 'bookName',
+      sorter: (a, b) => (a.age - b.age),
+    }, {
+      title: '作者',
+      dataIndex: 'author',
+      key: 'auther',
+    },
+    {
+      title:'图片',
+      dataIndex:'coverurl',
+      key:'coverurl',
+      render(text, record, index) {
+       return <img src={text} alt="" />
+      },
+    
+    }],
+    pagination :{
+      total:state.book.total,
+      pageSize:state.book.pageSize,
+      // onChange 不能调用 mapDispatchToProps 里面的方法
+      //所以只能使用原始的方法
+     onChange: (page) => {
+       store. dispatch(pageBookAction(page))
+     }
     }
-    store.subscribe(() =>{
-      this.setState(() =>({
-        list: store.getState().book.list,
-        inputVal: store.getState().book.inputVal,
-        pageNum: store.getState().book.pageNum,
-        pageSize: store.getState().book.pageSize,
-     
-        pagination :{
-          total:store.getState().book.total,
-          PageSize:store.getState().book.pageSize,
-          onChange:this.onPageChange.bind(this)}
-       
-      }))
-    })
-
-
-    this.getBookList = this.getBookList.bind(this);
-    this.onChange = this.onChange.bind(this);
-  
-  }
-  render() {
-    return (
-      <BookWrap>
-     
-         <div className="top">
-           <div className="left">
-             <Input 
-             //ref={(el) =>{this.inputEl = el}}
-             value={this.state.inputVal}
-             onChange={this.onChange}
-             placeholder="请输入"/>
-             <Button  type="primary" onClick={this.getBookList.bind(null,true)}>搜索</Button>
-           </div>
-         </div>
-        <MainWrap>
-        <Table
-        rowKey = "bookId"
-        pagination = {this.state.pagination}
-        dataSource={this.state.list} columns={columns} />
-        </MainWrap>
-       
-       </BookWrap>
-    )
-  }
-  componentDidMount() {
-    this.getBookList();
-  }
-
-  onChange (e) {
-    let value = e.target.value;
-    // this.setState(() =>({
-    //   inputVal: value
-    // }))
-    store.dispatch(inputChagne(value))
    
-  }
- 
-  onPageChange (page,pageSize) {
-    this.setState(()=>({
-      pageNum:page,
-      pageSize:pageSize
-    }), ()=>{
-      this.getBookList();
-    })
-   
-  }
+    
+   }
+} 
 
-  async getBookList (isSearch) {
-    if (isSearch) {
-   await  this.setState(()=>({pageNum : 1})) 
-    }
+//返回一个对象 ，返回的内容每个key都是一个方法，UI 组件可以通过props 的内容
+
+const mapDispatchToProps = (dispatch) => {
+   return {
+     onChange: (e) => {
+      let value = e.target.value;
+      dispatch(inputChagne(value))
+     },
+     serchbtnclick: ()=>{
+       dispatch(searchBookAction())
+      },
+      onPageChange : (page,pageSize) =>{
+        dispatch(pageBookAction(page))
        
-    let {pageNum,pageSize,inputVal} = this.state;
-    http.get('/api/book',{
-      params:{
-        bookName:inputVal,
-        pageNum:pageNum,
-        pageSize:pageSize,
-        
+      },
+      getBookList: () =>{
+        dispatch(getBookListAction())
       }
-    })
-    .then(res =>{
-       if (res.code === 0) {
-         this.setState((prev)=>({
-           list:res.data.list,
-          pagination: {
-            ...prev.pagination,
-            total:res.data.total
-          }
-        }))
-       }
-    })
-  }
+  
+   }
 }
-
-export default Book;
+// 暴露出去的是一个组件
+// 第一个括号里面有两个参数  mapStateToProps mapDispatchToProps
+// mapStateToProps 函数， 将redux store state 数据映射到UI组件的props里面去
+// mapDispatchToProps 函数 将某些方法 映射到UI 组件的props里面去
+// 第二个括号里面接收一个UI组件
+export default connect (mapStateToProps,mapDispatchToProps)(BookUI)

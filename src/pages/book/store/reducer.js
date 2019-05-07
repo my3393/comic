@@ -1,4 +1,4 @@
- import {INPUTVALCHANGE,SETBOOKDATA} from './actionTypes'
+ import {INPUTVALCHANGE,SETBOOKDATA,SETPAGENUM} from './actionTypes'
 const defaultState = {
   list:[],
   inputVal:'',
@@ -20,6 +20,10 @@ export default (state = defaultState,action ) => {
     case SETBOOKDATA:
       newState.list = action.data.list;
       newState.total = action.data.total;
+      break;
+    
+    case SETPAGENUM:
+      newState.pageNum = action.value;
       break;
 
     default:
